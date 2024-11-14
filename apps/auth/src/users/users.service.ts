@@ -1,10 +1,16 @@
-import { Injectable, NotFoundException, OnModuleInit, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit, InternalServerErrorException, HttpCode, HttpStatus } from '@nestjs/common';
 import {
-  User,
-  CreateUserDto,
-  UpdateUserDto,
-  Users,
-  PaginationDto,
+  CreateUserRequest,
+  GetAllUsersRequest,
+  PaginationMetadata,
+  PaginationRequest,
+  SortingField,
+  SortOrder,
+  Status,
+  UpdateUserRequest,
+User,
+UserResponse,
+UsersResponse
 } from '@app/common';
 import { randomUUID } from 'crypto';
 import { Observable, Subject, throwError } from 'rxjs';
@@ -26,63 +32,104 @@ export class UsersService implements OnModuleInit {
   }
   
 
-  create(createUserDto: CreateUserDto): User {
+  create(createUserDto: CreateUserRequest): UserResponse {
     try {
       const user: User = {
         ...createUserDto,
         subscribed: false,
-        socialMedia: {},
         id: randomUUID(),
       };
       this.users.push(user);
-      return user;
+      return {user};
     } catch (error) {
       console.error('Error creating user:', error);
       throw new InternalServerErrorException('Failed to create user.');
     }
   }
+ sortUser(users: User[], sortFields: SortingField[]) {
+  return users.sort((a, b) => {
+      for (const sortField of sortFields) {
+          const { field, order } = sortField;
 
-  findAll(): Users {
-    return { users: this.users };
+          const valueA = a[field];
+          const valueB = b[field];
+
+          if (valueA < valueB) {
+              return order === SortOrder.ASC ? -1 : 1;
+          }
+          if (valueA > valueB) {
+              return order === SortOrder.ASC ? 1 : -1;
+          }
+      }
+      return 0;
+    }); 
+ }
+
+  findAll(request: GetAllUsersRequest): UsersResponse {
+    const { pagination } = request;
+    const { page, limit, sortFields } = pagination;
+    const offset = page * limit;
+    if (!sortFields || sortFields.length === 0) { 
+      sortFields.push({field: "name", order: SortOrder.ASC})
+    }
+    const paginationMeta: PaginationMetadata = {
+      totalItems: this.users.length,
+      totalPages: Math.floor(this.users.length / limit),
+      currentPage: page,
+      itemsPerPage: limit,
+    }
+    const sortedUsers = this.sortUser(this.users, sortFields);
+    const userResult = sortedUsers.slice(offset, offset + limit);
+
+    return {users: userResult, metadata: paginationMeta};
   }
 
-  findOne(id: string): User {
+  findOne(id: string): UserResponse {
     const userIndex = this.users.findIndex((user) => user.id === id);
     if (userIndex !== -1) {
-      return this.users[userIndex];
+      return { user: this.users[userIndex] };
     }
     throw new NotFoundException(`User not found by id ${id}.`);
   }
 
-  update(id: string, updateUserDto: UpdateUserDto): User {
+  update(id: string, updateUserDto: UpdateUserRequest): UserResponse {
+    const { updateFields } = updateUserDto;
     const userIndex = this.users.findIndex((user) => user.id === id);
     if (userIndex !== -1) {
       this.users[userIndex] = {
         ...this.users[userIndex],
-        ...updateUserDto,
+        ...updateFields,
       };
-      return this.users[userIndex];
+      return {user: this.users[userIndex]};
     }
     throw new NotFoundException(`User not found by id ${id}.`);
   }
 
-  remove(id: string) {
+  remove(id: string): Status {
     const userIndex = this.users.findIndex((user) => user.id === id);
     if (userIndex !== -1) {
-      return this.users.splice(userIndex, 1)[0];
+      this.users.splice(userIndex);
+      return {
+        code: HttpStatus.OK,
+        message: `user with id ${id} has been deleted`
+      }
     }
-    throw new NotFoundException(`User not found by id ${id}.`);
+    return {
+      code: HttpStatus.NOT_FOUND,
+      message: `user with id ${id} has been deleted`
+    }
   }
 
   queryUsers(
-    paginationDtoStream: Observable<PaginationDto>,
-  ): Observable<Users> {
-    const subject = new Subject<Users>();
-
-    const onNext = (paginationDto: PaginationDto) => {
-      const start = paginationDto.page * paginationDto.skip;
+    paginationDtoStream: Observable<PaginationRequest>,
+  ): Observable<UsersResponse> {
+    const subject = new Subject<UsersResponse>();
+    const onNext = (paginationDto: PaginationRequest) => {
+      const { page, limit, sortFields} = paginationDto;
+      const start = page * limit;
+      const sortedUsers = this.sortUser(this.users,sortFields)
       subject.next({
-        users: this.users.slice(start, start + paginationDto.skip),
+        users: sortedUsers.slice(start, start + limit),
       });
     };
 

@@ -1,61 +1,62 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import {
   AUTH_PACKAGE_NAME,
-  CreateUserDto,
-  PaginationDto,
-  USERS_SERVICE_NAME,
-  UpdateUserDto,
-  UsersServiceClient,
+  CreateUserRequest,
+  GetAllUsersRequest,
+  GetUserByIdRequest,
+  PaginationRequest,
+  UpdateUserRequest,
+  USER_SERVICE_NAME,
+  UserServiceClient,
 } from '@app/common';
 import { ClientGrpc } from '@nestjs/microservices';
 import { ReplaySubject } from 'rxjs';
 
 @Injectable()
 export class UsersService implements OnModuleInit {
-  private usersService: UsersServiceClient;
+  private usersService: UserServiceClient;
 
   constructor(@Inject(AUTH_PACKAGE_NAME) private client: ClientGrpc) {}
  // glue the grpc client with API Gateway
   onModuleInit() {
     this.usersService =
-      this.client.getService<UsersServiceClient>(USERS_SERVICE_NAME);
+      this.client.getService<UserServiceClient>(USER_SERVICE_NAME);
   }
 
-  create(createUserDto: CreateUserDto) {
+  createUser(createUserDto: CreateUserRequest) {
     return this.usersService.createUser(createUserDto);
   }
 
-  findAll() {
-    return this.usersService.findAllUsers({});
+  getAllUsers(request: GetAllUsersRequest) {
+    return this.usersService.getAllUsers(request);
   }
 
-  findOne(id: string) {
-    return this.usersService.findOneUser({ id });
+  getUserById(request: GetUserByIdRequest) {
+    return this.usersService.getUserById(request);
   }
 
-  update(id: string, updateUserDto: UpdateUserDto) {
-    return this.usersService.updateUser({ id, ...updateUserDto });
+  updateUser(updateUserDto: UpdateUserRequest) {
+    return this.usersService.updateUser(updateUserDto);
   }
 
-  remove(id: string) {
-    return this.usersService.removeUser({ id });
+  deleteUser(request: GetUserByIdRequest) {
+    return this.usersService.deleteUser(request);
   }
 
-  // emailUsers() {
-  //   const users$ = new ReplaySubject<PaginationDto>();
+  emailUsers() {
+    const users$ = new ReplaySubject<PaginationRequest>();
+    users$.next({ page: 0, limit: 25, sortFields: []  });
+    users$.next({ page: 1, limit: 25 , sortFields: [] });
+    users$.next({ page: 2, limit: 25 , sortFields: [] });
+    users$.next({ page: 3, limit: 25 , sortFields: [] });
 
-  //   users$.next({ page: 0, skip: 25 });
-  //   users$.next({ page: 1, skip: 25 });
-  //   users$.next({ page: 2, skip: 25 });
-  //   users$.next({ page: 3, skip: 25 });
+    users$.complete();
 
-  //   users$.complete();
+    let chunkNumber = 1;
 
-  //   let chunkNumber = 1;
-
-  //   this.usersService.queryUsers(users$).subscribe((users) => {
-  //     console.log('Chunk', chunkNumber, users);
-  //     chunkNumber += 1;
-  //   });
-  // }
+    this.usersService.streamUsers(users$).subscribe((users) => {
+      console.log('Chunk', chunkNumber, users);
+      chunkNumber += 1;
+    });
+  }
 }

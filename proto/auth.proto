@@ -2,51 +2,88 @@ syntax = "proto3";
 
 package auth;
 
-service UsersService {
-    rpc CreateUser (CreateUserDto) returns (User) {}
-    rpc FindAllUsers (Empty) returns (Users) {}
-    rpc FindOneUser (FindOneUserDto) returns (User) {}
-    rpc UpdateUser (UpdateUserDto) returns (User) {}
-    rpc RemoveUser (FindOneUserDto) returns (User) {}
-    rpc QueryUsers (stream PaginationDto) returns (stream Users) {}
+service UserService {
+    rpc CreateUser (CreateUserRequest) returns (UserResponse) {}
+    rpc GetAllUsers (GetAllUsersRequest) returns (UsersResponse) {}
+    rpc GetUserById (GetUserByIdRequest) returns (UserResponse) {}
+    rpc UpdateUser (UpdateUserRequest) returns (UserResponse) {}
+    rpc DeleteUser (GetUserByIdRequest) returns (Status) {}
+    rpc StreamUsers (stream PaginationRequest) returns (stream UsersResponse) {}
 }
 
-message PaginationDto {
+enum SortOrder {
+    ASC = 0;
+    DESC = 1;
+}
+
+message PaginationRequest {
     int32 page = 1;
-    int32 skip = 2;
+    int32 limit = 2;
+    repeated SortingField sortFields = 3; 
 }
 
-message UpdateUserDto {
+message SortingField {
+    string field = 1;
+    SortOrder order = 2;
+}
+
+message GetAllUsersRequest {
+    PaginationRequest pagination = 1;
+}
+
+message UpdateUserRequest {
     string id = 1;
-    SocialMedia socialMedia = 2;
+    UserUpdateFields updateFields = 2;
 }
 
-message FindOneUserDto {
+message UserUpdateFields {
+    optional int32 age = 1;
+    optional bool subscribed = 2;
+    optional SocialMedia socialMedia = 3;
+    optional string password = 4;
+}
+
+message GetUserByIdRequest {
     string id = 1;
 }
 
-message CreateUserDto {
+message CreateUserRequest {
     string username = 1;
     string password = 2;
     int32 age = 3;
 }
 
-message Empty {}
+message Status {
+    int32 code = 1;
+    string message = 2;
+}
 
-message Users {
+message UsersResponse {
     repeated User users = 1;
+    PaginationMetadata metadata = 2;
+}
+
+message PaginationMetadata {
+    int32 totalItems = 1;
+    int32 totalPages = 2;
+    int32 currentPage = 3;
+    int32 itemsPerPage = 4;
+}
+
+message UserResponse {
+    User user = 1;
 }
 
 message User {
     string id = 1;
     string username = 2;
-    string password = 3;
-    int32 age = 4;
-    bool subscribed = 5;
-    SocialMedia socialMedia = 6;
+    int32 age = 3;
+    bool subscribed = 4;
+    optional SocialMedia socialMedia = 5;
 }
 
 message SocialMedia {
-    optional string twitterUri = 1;
-    optional string fbUri = 2;
+    string twitterUri = 1;
+    string fbUri = 2;
+    map<string, string> extraData = 3;
 }

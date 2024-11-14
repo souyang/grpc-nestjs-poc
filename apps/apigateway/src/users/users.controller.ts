@@ -8,39 +8,39 @@ import {
   Delete,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { CreateUserDto, UpdateUserDto } from '@app/common';
+import { CreateUserRequest, GetAllUsersRequest, UserUpdateFields } from '@app/common';
 
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
   @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.create(createUserDto);
+  create(@Body() createUserDto: CreateUserRequest) {
+    return this.usersService.createUser(createUserDto);
   }
 
-  @Get()
-  findAll() {
-    return this.usersService.findAll();
+  @Post('/list')
+  findAll(@Body() request: GetAllUsersRequest) {
+    return this.usersService.getAllUsers(request);
   }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
-    return this.usersService.findOne(id);
+    return this.usersService.getUserById({id});
   }
 
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.usersService.update(id, updateUserDto);
+  update(@Param('id') id: string, @Body() updateUserDto: UserUpdateFields) {
+    return this.usersService.updateUser({id, updateFields: updateUserDto});
   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.usersService.remove(id);
+    return this.usersService.deleteUser({id});
   }
 
-  // @Post('email')
-  // emailUsers() {
-  //   return this.usersService.emailUsers();
-  // }
+  @Post('email')
+  emailUsers() {
+    return this.usersService.emailUsers();
+  }
 }
