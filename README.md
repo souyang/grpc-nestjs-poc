@@ -24,7 +24,7 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+A [Nest](https://github.com/nestjs/nest) Microservice TypeScript repository on gRPC and Rest API Integration.
 
 ## Project setup
 
@@ -36,14 +36,265 @@ $ pnpm install
 
 ```bash
 # development
-$ pnpm run start
+$ pnpm run start auth
+$ pnpm run start apigateway
 
 # watch mode
-$ pnpm run start:dev
+$ pnpm run start:dev auth
+$ pnpm run start:dev apigateway
 
 # production mode
-$ pnpm run start:prod
+$ pnpm run start:prod auth
+$ pnpm run start:prod apigateway
 ```
+
+## API Documentation (Swagger)
+Open browser, go to `[localhost:3000/](http://localhost:3000/api-docs)`
+
+### API 
+Here’s a sample API documentation in Markdown format for the user management system based on the methods and structure provided.
+
+---
+
+# User Management API Documentation
+
+This documentation provides details about the User Management API, which includes endpoints for creating, retrieving, updating, deleting users, and sending emails in batch.
+
+---
+
+## Base URL
+
+- **Production**: `https://api.yourdomain.com/users`
+- **Development**: `https://dev-api.yourdomain.com/users`
+
+---
+
+## Endpoints
+
+### 1. Create a New User
+
+- **Endpoint**: `POST /users`
+- **Description**: Creates a new user.
+- **Request Body**:
+  
+  ```json
+  {
+    "username": "string",
+    "password": "string",
+    "age": "integer"
+  }
+  ```
+
+- **Responses**:
+  - **201 Created**: User successfully created.
+  - **400 Bad Request**: Validation error or missing required fields.
+
+- **Example Request**:
+
+  ```bash
+  curl -X POST https://api.yourdomain.com/users \
+    -H "Content-Type: application/json" \
+    -d '{
+          "username": "john_doe",
+          "password": "password123",
+          "age": 30
+        }'
+  ```
+
+---
+
+### 2. List Users with Pagination
+
+- **Endpoint**: `POST /users/list`
+- **Description**: Retrieves a paginated list of users.
+- **Request Body**:
+  
+  ```json
+  {
+    "pagination": {
+      "page": "integer",
+      "limit": "integer",
+      "sortFields": [
+        {
+          "field": "string",
+          "order": "ASC|DESC"
+        }
+      ]
+    }
+  }
+  ```
+
+- **Responses**:
+  - **200 OK**: Returns a list of users with pagination metadata.
+  - **400 Bad Request**: Validation error or invalid pagination parameters.
+
+- **Example Request**:
+
+  ```bash
+  curl -X POST https://api.yourdomain.com/users/list \
+    -H "Content-Type: application/json" \
+    -d '{
+          "pagination": {
+            "page": 1,
+            "limit": 10,
+            "sortFields": [
+              {
+                "field": "username",
+                "order": "ASC"
+              }
+            ]
+          }
+        }'
+  ```
+
+---
+
+### 3. Get User by ID
+
+- **Endpoint**: `GET /users/{id}`
+- **Description**: Fetches details of a user by ID.
+- **Path Parameter**:
+  - **id**: Unique identifier of the user.
+
+- **Responses**:
+  - **200 OK**: Returns user details.
+  - **404 Not Found**: User not found.
+
+- **Example Request**:
+
+  ```bash
+  curl -X GET https://api.yourdomain.com/users/12345
+  ```
+
+---
+
+### 4. Update User
+
+- **Endpoint**: `PATCH /users/{id}`
+- **Description**: Updates user data by ID.
+- **Path Parameter**:
+  - **id**: Unique identifier of the user.
+- **Request Body**:
+
+  ```json
+  {
+    "updateFields": {
+      "age": "integer",
+      "subscribed": "boolean",
+      "socialMedia": {
+        "twitterUri": "string",
+        "fbUri": "string",
+        "extraData": {
+          "key": "value"
+        }
+      },
+      "password": "string"
+    }
+  }
+  ```
+
+- **Responses**:
+  - **200 OK**: User successfully updated.
+  - **400 Bad Request**: Validation error or invalid fields.
+  - **404 Not Found**: User not found.
+
+- **Example Request**:
+
+  ```bash
+  curl -X PATCH https://api.yourdomain.com/users/12345 \
+    -H "Content-Type: application/json" \
+    -d '{
+          "updateFields": {
+            "age": 31,
+            "subscribed": true,
+            "socialMedia": {
+              "twitterUri": "https://twitter.com/johndoe",
+              "fbUri": "https://facebook.com/johndoe"
+            },
+            "password": "newpassword123"
+          }
+        }'
+  ```
+
+---
+
+### 5. Delete User
+
+- **Endpoint**: `DELETE /users/{id}`
+- **Description**: Deletes a user by ID.
+- **Path Parameter**:
+  - **id**: Unique identifier of the user.
+
+- **Responses**:
+  - **200 OK**: User successfully deleted.
+  - **404 Not Found**: User not found.
+
+- **Example Request**:
+
+  ```bash
+  curl -X DELETE https://api.yourdomain.com/users/12345
+  ```
+
+---
+
+### 6. Email Users in Batch
+
+- **Endpoint**: `POST /users/email`
+- **Description**: Sends batch emails to all users.
+- **Request Body**: No request body needed.
+
+- **Responses**:
+  - **200 OK**: Emails successfully queued/sent.
+  - **500 Internal Server Error**: Error in email service.
+
+- **Example Request**:
+
+  ```bash
+  curl -X POST https://api.yourdomain.com/users/email
+  ```
+
+---
+
+## Data Models
+
+### User Object
+
+```json
+{
+  "id": "string",
+  "username": "string",
+  "age": "integer",
+  "subscribed": "boolean",
+  "socialMedia": {
+    "twitterUri": "string",
+    "fbUri": "string",
+    "extraData": {
+      "key": "value"
+    }
+  }
+}
+```
+
+### Pagination Metadata
+
+```json
+{
+  "totalItems": "integer",
+  "totalPages": "integer",
+  "currentPage": "integer",
+  "itemsPerPage": "integer"
+}
+```
+
+---
+
+## Response Codes
+
+- **200 OK**: The request was successful.
+- **201 Created**: A new resource was successfully created.
+- **400 Bad Request**: The request was invalid or cannot be served.
+- **404 Not Found**: The requested resource could not be found.
+- **500 Internal Server Error**: An error occurred on the server.
 
 ## Run tests
 
@@ -57,32 +308,6 @@ $ pnpm run test:e2e
 # test coverage
 $ pnpm run test:cov
 ```
-
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ pnpm install -g mau
-$ mau deploy
-```
-
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
-
-## Resources
-
-Check out a few resources that may come in handy when working with NestJS:
-
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
 
 ## Support
 
