@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, OnModuleInit, InternalServerErrorException, HttpCode, HttpStatus } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit, InternalServerErrorException, HttpStatus } from '@nestjs/common';
 import {
   CreateUserRequest,
   GetAllUsersRequest,
