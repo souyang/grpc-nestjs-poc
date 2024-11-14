@@ -52,7 +52,251 @@ $ pnpm run start:prod apigateway
 Open browser, go to `[localhost:3000/](http://localhost:3000/api-docs)`
 
 ### API Documentation (Markdown)
-[documentation](/Documentation.md)
+<details>
+<summary>View Here</summary>
+
+---
+
+# User Management API Documentation
+
+This documentation provides details about the User Management API, which includes endpoints for creating, retrieving, updating, deleting users, and sending emails in batch.
+
+---
+
+## Base URL
+
+- **Production**: `https://api.yourdomain.com/users`
+- **Development**: `https://dev-api.yourdomain.com/users`
+
+---
+
+## Endpoints
+
+### 1. Create a New User
+
+- **Endpoint**: `POST /users`
+- **Description**: Creates a new user.
+- **Request Body**:
+  
+  ```json
+  {
+    "username": "string",
+    "password": "string",
+    "age": "integer"
+  }
+  ```
+
+- **Responses**:
+  - **201 Created**: User successfully created.
+  - **400 Bad Request**: Validation error or missing required fields.
+
+- **Example Request**:
+
+  ```bash
+  curl -X POST https://api.yourdomain.com/users \
+    -H "Content-Type: application/json" \
+    -d '{
+          "username": "john_doe",
+          "password": "password123",
+          "age": 30
+        }'
+  ```
+
+---
+
+### 2. List Users with Pagination
+
+- **Endpoint**: `POST /users/list`
+- **Description**: Retrieves a paginated list of users.
+- **Request Body**:
+  
+  ```json
+  {
+    "pagination": {
+      "page": "integer",
+      "limit": "integer",
+      "sortFields": [
+        {
+          "field": "string",
+          "order": "ASC|DESC"
+        }
+      ]
+    }
+  }
+  ```
+
+- **Responses**:
+  - **200 OK**: Returns a list of users with pagination metadata.
+  - **400 Bad Request**: Validation error or invalid pagination parameters.
+
+- **Example Request**:
+
+  ```bash
+  curl -X POST https://api.yourdomain.com/users/list \
+    -H "Content-Type: application/json" \
+    -d '{
+          "pagination": {
+            "page": 1,
+            "limit": 10,
+            "sortFields": [
+              {
+                "field": "username",
+                "order": "ASC"
+              }
+            ]
+          }
+        }'
+  ```
+
+---
+
+### 3. Get User by ID
+
+- **Endpoint**: `GET /users/{id}`
+- **Description**: Fetches details of a user by ID.
+- **Path Parameter**:
+  - **id**: Unique identifier of the user.
+
+- **Responses**:
+  - **200 OK**: Returns user details.
+  - **404 Not Found**: User not found.
+
+- **Example Request**:
+
+  ```bash
+  curl -X GET https://api.yourdomain.com/users/12345
+  ```
+
+---
+
+### 4. Update User
+
+- **Endpoint**: `PATCH /users/{id}`
+- **Description**: Updates user data by ID.
+- **Path Parameter**:
+  - **id**: Unique identifier of the user.
+- **Request Body**:
+
+  ```json
+  {
+    "updateFields": {
+      "age": "integer",
+      "subscribed": "boolean",
+      "socialMedia": {
+        "twitterUri": "string",
+        "fbUri": "string",
+        "extraData": {
+          "key": "value"
+        }
+      },
+      "password": "string"
+    }
+  }
+  ```
+
+- **Responses**:
+  - **200 OK**: User successfully updated.
+  - **400 Bad Request**: Validation error or invalid fields.
+  - **404 Not Found**: User not found.
+
+- **Example Request**:
+
+  ```bash
+  curl -X PATCH https://api.yourdomain.com/users/12345 \
+    -H "Content-Type: application/json" \
+    -d '{
+          "updateFields": {
+            "age": 31,
+            "subscribed": true,
+            "socialMedia": {
+              "twitterUri": "https://twitter.com/johndoe",
+              "fbUri": "https://facebook.com/johndoe"
+            },
+            "password": "newpassword123"
+          }
+        }'
+  ```
+
+---
+
+### 5. Delete User
+
+- **Endpoint**: `DELETE /users/{id}`
+- **Description**: Deletes a user by ID.
+- **Path Parameter**:
+  - **id**: Unique identifier of the user.
+
+- **Responses**:
+  - **200 OK**: User successfully deleted.
+  - **404 Not Found**: User not found.
+
+- **Example Request**:
+
+  ```bash
+  curl -X DELETE https://api.yourdomain.com/users/12345
+  ```
+
+---
+
+### 6. Email Users in Batch
+
+- **Endpoint**: `POST /users/email`
+- **Description**: Sends batch emails to all users.
+- **Request Body**: No request body needed.
+
+- **Responses**:
+  - **200 OK**: Emails successfully queued/sent.
+  - **500 Internal Server Error**: Error in email service.
+
+- **Example Request**:
+
+  ```bash
+  curl -X POST https://api.yourdomain.com/users/email
+  ```
+
+---
+
+## Data Models
+
+### User Object
+
+```json
+{
+  "id": "string",
+  "username": "string",
+  "age": "integer",
+  "subscribed": "boolean",
+  "socialMedia": {
+    "twitterUri": "string",
+    "fbUri": "string",
+    "extraData": {
+      "key": "value"
+    }
+  }
+}
+```
+
+### Pagination Metadata
+
+```json
+{
+  "totalItems": "integer",
+  "totalPages": "integer",
+  "currentPage": "integer",
+  "itemsPerPage": "integer"
+}
+```
+
+---
+
+## Response Codes
+
+- **200 OK**: The request was successful.
+- **201 Created**: A new resource was successfully created.
+- **400 Bad Request**: The request was invalid or cannot be served.
+- **404 Not Found**: The requested resource could not be found.
+- **500 Internal Server Error**: An error occurred on the server.
+</details>
 
 ## Run tests
 

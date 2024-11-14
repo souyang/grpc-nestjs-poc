@@ -70,7 +70,7 @@ export class UsersService implements OnModuleInit {
     const { page, limit, sortFields } = pagination;
     const offset = page * limit;
     if (!sortFields || sortFields.length === 0) { 
-      sortFields.push({field: "name", order: SortOrder.ASC})
+      sortFields.push({field: "username", order: SortOrder.ASC})
     }
     const paginationMeta: PaginationMetadata = {
       totalItems: this.users.length,
