@@ -128,8 +128,15 @@ export class UsersService implements OnModuleInit {
       const { page, limit, sortFields} = paginationDto;
       const start = page * limit;
       const sortedUsers = this.sortUser(this.users,sortFields)
+      const paginationMeta: PaginationMetadata = {
+        totalItems: this.users.length,
+        totalPages: Math.floor(this.users.length / limit),
+        currentPage: page,
+        itemsPerPage: limit,
+      }
       subject.next({
         users: sortedUsers.slice(start, start + limit),
+        metadata: paginationMeta
       });
     };
 
